@@ -35,8 +35,8 @@ Ao rodar cada microserviço ele fará migrate na base criando todas as tabelas n
 
 ## Usando Kong e Konga, como Api Gateway.
 
-Dentro das pasta `docker-kong` criar imagem docker com commando ```docker network create kong-net```, execute os seguintes comandos:
-- ```docker-compose up -d db``` esperar iniciar.
+Dentro das pasta `docker-kong` criar imagem docker com commando ```docker network create kong-net```, execute os seguintes comandos respectivamente:
+- ```docker-compose up -d db``` esperar iniciar o banco.
 - ```docker-compose ps```
 - ```docker-compose up -d ```
 
