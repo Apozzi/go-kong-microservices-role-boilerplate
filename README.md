@@ -31,6 +31,6 @@ Com isso teremos os seguintes microserviços rodando nas seguintes portas.
 
 `user-microservice` = `localhost:8081`
 
-Ao rodar cada microserviço ele fará migrate na base criando todas as tabelas no Postgres.
+Ao rodar cada microserviço ele fará migrate na base criando todas as tabelas no Postgres, também é possivel fazer criação de tabela e registros através da pasta `database`.
 
 ## Usando Kong e Konga, como Api Gateway.
