@@ -40,3 +40,5 @@ Dentro das pasta `docker-kong` criar imagem docker com commando ```docker networ
 - ```docker-compose ps```
 - ```docker-compose up -d ```
 
+Após isso acessar `localhost:1337` e criar usuario e senha (a que eu usei foram username:admin, password:ADMINADMIN).
+
