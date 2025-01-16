@@ -32,4 +32,4 @@ Com isso teremos os seguintes microserviços rodando nas seguintes portas.
 
 `user-microservice` = `localhost:8081`
 
-
+## Usando Kong e Konga, como Api Gateway.
