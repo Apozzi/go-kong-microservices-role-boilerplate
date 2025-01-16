@@ -14,6 +14,8 @@ role-microservice
 
 user-microservice
 
+Rodar o seguinte comandos em todos os projetos.
+
 ```
 go install
 ```
