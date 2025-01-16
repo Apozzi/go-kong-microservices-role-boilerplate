@@ -1,4 +1,4 @@
-# Login Role API Backend
+# Login Role Microservices Backend
 Microserviços feitos em golang utilizando frameworks Gin e o a ORM do Gorm e Kong como Api Gateway.
 
 
