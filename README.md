@@ -5,9 +5,7 @@ API feita em golang utilizando frameworks Gin e o a ORM do Gorm.
 ## Como rodar?
 O backend roda utilizando Go 1.17, é importante que tenha Postgres instalado e rodando na maquina.
 
-Primeiramente é necessária instalação das dependencias na pasta de cada projeto.
-
-vale lembrar que temos 3 projetos diferentes.
+Primeiramente é necessária instalação das dependencias na pasta de cada projeto, vale lembrar que temos 3 pastas com microserviços diferentes.
 
 `item-microservice`
 
