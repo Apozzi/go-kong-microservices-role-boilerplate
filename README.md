@@ -1,5 +1,5 @@
 # Login Role API Backend
-API feita em golang utilizando frameworks Gin e o a ORM do Gorm.
+Microserviços feitos em golang utilizando frameworks Gin e o a ORM do Gorm e Kong como Api Gateway.
 
 
 ## Como rodar?
