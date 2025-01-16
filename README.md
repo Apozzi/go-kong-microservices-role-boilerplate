@@ -3,7 +3,7 @@ API feita em golang utilizando frameworks Gin e o a ORM do Gorm.
 
 
 ## Como rodar?
-O backend roda utilizando Go 1.17.
+O backend roda utilizando Go 1.17, é importante que tenha Postgres instalado e rodando na maquina.
 Primeiramente é necessária instalação das dependencias na pasta do projeto.
 
 vale lembrar que temos 3 projetos diferentes.
@@ -31,5 +31,7 @@ Com isso teremos os seguintes microserviços rodando nas seguintes portas.
 `role-microservice` = `localhost:8082`
 
 `user-microservice` = `localhost:8081`
+
+Ao rodar cada microserviço ele fará migrate na base criando todas as tabelas no Postgres.
 
 ## Usando Kong e Konga, como Api Gateway.
