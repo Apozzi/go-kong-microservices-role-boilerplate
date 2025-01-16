@@ -1,6 +1,8 @@
 # Login Role Microservices Backend
 Microserviços feitos em golang utilizando frameworks Gin e o a ORM do Gorm e Kong como Api Gateway.
 
+Os serviços tem modelos de usuário e permissões por papeis.
+
 
 ## Como rodar?
 O backend roda utilizando Go 1.17, é importante que tenha Postgres instalado e rodando na maquina.
