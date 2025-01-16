@@ -8,11 +8,11 @@ Primeiramente é necessária instalação das dependencias na pasta do projeto.
 
 vale lembrar que temos 3 projetos diferentes.
 
-item-microservice
+`item-microservice`
 
-role-microservice
+`role-microservice`
 
-user-microservice
+`user-microservice`
 
 Rodar o seguinte comandos em todos os projetos.
 
