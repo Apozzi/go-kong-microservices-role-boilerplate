@@ -1,0 +1,697 @@
+basePath: /api/v1
+definitions:
+  controllers.ErrorResponse:
+    properties:
+      error:
+        type: string
+      errors:
+        additionalProperties:
+          type: string
+        type: object
+    type: object
+  controllers.Response:
+    properties:
+      data: {}
+      error:
+        type: string
+      errors:
+        additionalProperties:
+          type: string
+        type: object
+      message:
+        type: string
+    type: object
+  models.Item:
+    description: Informações do item
+    properties:
+      atualizado_em:
+        type: string
+      criado_em:
+        type: string
+      descricao:
+        type: string
+      id:
+        type: integer
+      valor:
+        type: number
+    type: object
+  models.Role:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+  models.User:
+    properties:
+      email:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      password:
+        type: string
+      registerDate:
+        type: string
+      roles:
+        items:
+          $ref: '#/definitions/models.Role'
+        type: array
+    required:
+    - email
+    - name
+    type: object
+  models.UserLogin:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+host: localhost:8081
+info:
+  contact:
+    email: eanderea1@gmail.com
+    name: Anderson Rodrigo Pozzi
+    url: adeveloper.com.br
+  description: Exemplo de servidor com login e autenticação com roles.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Login Role Boilerplate
+  version: "1.0"
+paths:
+  /items:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of all registered items
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/models.Item'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.ErrorResponse'
+            - properties:
+                error:
+                  type: string
+              type: object
+      summary: List all items
+      tags:
+      - items
+    post:
+      consumes:
+      - application/json
+      description: Create a new item with the provided data
+      parameters:
+      - description: Item information
+        in: body
+        name: item
+        required: true
+        schema:
+          $ref: '#/definitions/models.Item'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Item created successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Item'
+              type: object
+        "400":
+          description: Validation error
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.ErrorResponse'
+            - properties:
+                errors:
+                  additionalProperties:
+                    type: string
+                  type: object
+              type: object
+        "500":
+          description: Failed to create item
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.ErrorResponse'
+            - properties:
+                error:
+                  type: string
+              type: object
+      summary: Create new item
+      tags:
+      - items
+  /items/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Remove an item by its ID
+      parameters:
+      - description: Item ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Item deleted successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.Response'
+            - properties:
+                message:
+                  type: string
+              type: object
+        "404":
+          description: Item not found
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.ErrorResponse'
+            - properties:
+                error:
+                  type: string
+              type: object
+        "500":
+          description: Failed to delete item
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.ErrorResponse'
+            - properties:
+                error:
+                  type: string
+              type: object
+      summary: Delete item
+      tags:
+      - items
+    get:
+      consumes:
+      - application/json
+      description: Get a specific item by its ID
+      parameters:
+      - description: Item ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Item'
+              type: object
+        "404":
+          description: Item not found
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.ErrorResponse'
+            - properties:
+                error:
+                  type: string
+              type: object
+      summary: Get item by ID
+      tags:
+      - items
+    put:
+      consumes:
+      - application/json
+      description: Update an existing item's information
+      parameters:
+      - description: Item ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated item information
+        in: body
+        name: item
+        required: true
+        schema:
+          $ref: '#/definitions/models.Item'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Item updated successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Item'
+              type: object
+        "400":
+          description: Invalid data provided
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.ErrorResponse'
+            - properties:
+                error:
+                  type: string
+              type: object
+        "404":
+          description: Item not found
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.ErrorResponse'
+            - properties:
+                error:
+                  type: string
+              type: object
+        "500":
+          description: Failed to update item
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.ErrorResponse'
+            - properties:
+                error:
+                  type: string
+              type: object
+      summary: Update item
+      tags:
+      - items
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Validates user credentials and returns a JWT token.
+      parameters:
+      - description: User credentials
+        in: body
+        name: userLogin
+        required: true
+        schema:
+          $ref: '#/definitions/models.UserLogin'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: JWT token and user information
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Invalid credentials
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Failed to create token
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Authenticate user
+      tags:
+      - Authentication
+  /roles:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of all roles
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/models.Role'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.ErrorResponse'
+            - properties:
+                error:
+                  type: string
+              type: object
+      summary: Get all roles
+      tags:
+      - roles
+  /roles/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a role by its ID
+      parameters:
+      - description: Role ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.Response'
+            - properties:
+                message:
+                  type: string
+              type: object
+        "400":
+          description: Role In Use
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.ErrorResponse'
+            - properties:
+                error:
+                  type: string
+              type: object
+        "404":
+          description: Role Not Found
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.ErrorResponse'
+            - properties:
+                error:
+                  type: string
+              type: object
+        "500":
+          description: Delete Failed
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.ErrorResponse'
+            - properties:
+                error:
+                  type: string
+              type: object
+      summary: Delete role
+      tags:
+      - roles
+    get:
+      consumes:
+      - application/json
+      description: Get a single role by its ID
+      parameters:
+      - description: Role ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Role'
+              type: object
+      summary: Get role by ID
+      tags:
+      - roles
+  /users:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of all users with their roles
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/models.User'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controllers.ErrorResponse'
+      summary: Get all users
+      tags:
+      - users
+    post:
+      consumes:
+      - application/json
+      description: Create a new user account
+      parameters:
+      - description: User information
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.User'
+              type: object
+        "400":
+          description: Validation Error
+          schema:
+            $ref: '#/definitions/controllers.ErrorResponse'
+        "409":
+          description: User Already Exists
+          schema:
+            $ref: '#/definitions/controllers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controllers.ErrorResponse'
+      summary: Create new user
+      tags:
+      - users
+  /users/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a user by their ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.User'
+              type: object
+      summary: Delete user
+      tags:
+      - users
+    get:
+      consumes:
+      - application/json
+      description: Get a single user by their ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.User'
+              type: object
+      summary: Get user by ID
+      tags:
+      - users
+    put:
+      consumes:
+      - application/json
+      description: Update an existing user's information
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated user information
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.User'
+              type: object
+      summary: Update user
+      tags:
+      - users
+  /users/{userId}/roles/{roleId}:
+    delete:
+      consumes:
+      - application/json
+      description: Remove a role association from a user
+      parameters:
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: string
+      - description: Role ID
+        in: path
+        name: roleId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.Response'
+            - properties:
+                message:
+                  type: string
+                role:
+                  $ref: '#/definitions/models.Role'
+                user:
+                  $ref: '#/definitions/models.User'
+              type: object
+        "400":
+          description: Invalid ID
+          schema:
+            $ref: '#/definitions/controllers.ErrorResponse'
+        "404":
+          description: User or Role Not Found
+          schema:
+            $ref: '#/definitions/controllers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controllers.ErrorResponse'
+      summary: Remove role from user
+      tags:
+      - user-roles
+    post:
+      consumes:
+      - application/json
+      description: Associate a role with a user
+      parameters:
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: string
+      - description: Role ID
+        in: path
+        name: roleId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.Response'
+            - properties:
+                message:
+                  type: string
+                role:
+                  $ref: '#/definitions/models.Role'
+                user:
+                  $ref: '#/definitions/models.User'
+              type: object
+        "400":
+          description: Invalid ID
+          schema:
+            $ref: '#/definitions/controllers.ErrorResponse'
+        "404":
+          description: User or Role Not Found
+          schema:
+            $ref: '#/definitions/controllers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controllers.ErrorResponse'
+      summary: Add role to user
+      tags:
+      - user-roles
+  /verify-token:
+    get:
+      description: Checks if the provided JWT token is valid.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Token is valid
+          schema:
+            additionalProperties:
+              type: boolean
+            type: object
+      summary: Verify token
+      tags:
+      - Authentication
+swagger: "2.0"

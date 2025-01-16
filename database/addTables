@@ -1,0 +1,23 @@
+CREATE TABLE IF NOT EXISTS public.users
+(
+    id integer NOT NULL GENERATED ALWAYS AS IDENTITY ( INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1 ),
+    name character varying(100) COLLATE pg_catalog."default",
+    email character varying COLLATE pg_catalog."default",
+    password character varying COLLATE pg_catalog."default",
+    register_date date,
+    CONSTRAINT users_pkey PRIMARY KEY (id)
+)
+
+CREATE TABLE user_roles (
+    user_id INT NOT NULL,
+    role_id INT NOT NULL,
+    PRIMARY KEY (user_id, role_id),
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+    FOREIGN KEY (role_id) REFERENCES roles (id) ON DELETE CASCADE
+);
+
+
+CREATE TABLE roles (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(50) UNIQUE NOT NULL
+);

@@ -1,0 +1,61 @@
+--------------------------------------------------------------------------------------------------------------------------------
+
+DELETE FROM public.users;
+DELETE FROM public.roles;
+
+--------------------------------------------------------------------------------------------------------------------------------
+
+
+INSERT INTO public.users(
+	name, email, password, register_date)
+	VALUES ('Transportadora Platina', 'transportadoraplatina@gmail.com', 'admin','25/11/2021');
+
+INSERT INTO public.users(
+	name, email, password, register_date)
+	VALUES ('Motor Viagens', 'motorviagens@gmail.com', 'admin','25/11/2021');
+	
+INSERT INTO public.users(
+	name, email, password, register_date)
+	VALUES ('Fenix TI', 'fenixti@gmail.com', 'admin', '25/11/2021');
+	
+INSERT INTO public.users(
+	name, email, password, register_date)
+	VALUES ('escola espanhola', 'escolaespanha@gmail.com', 'admin', '25/11/2021');
+	
+INSERT INTO public.users(
+	name, email, password, register_date)
+	VALUES ('Financas Benner', 'financasbenner@gmail.com', 'admin', '25/11/2021');
+
+
+INSERT INTO roles (name) VALUES ('Admin'), ('Modifier'), ('Watcher');
+
+
+-- Associar o usuário 'Transportadora Platina' à role 'Admin'
+INSERT INTO public.user_roles (user_id, role_id)
+VALUES (1, 1);  
+
+-- Associar o usuário 'Motor Viagens' à role 'Modifier'
+INSERT INTO public.user_roles (user_id, role_id)
+VALUES (2, 2);
+
+-- Associar o usuário 'Fenix TI' à role 'Watcher'
+INSERT INTO public.user_roles (user_id, role_id)
+VALUES (3, 3);
+
+-- Associar o usuário 'escola espanhola' às roles 'Admin' e 'Watcher'
+INSERT INTO public.user_roles (user_id, role_id)
+VALUES (4, 1), (4, 3);
+
+-- Associar o usuário 'Financas Benner' às roles 'Modifier' e 'Watcher'
+INSERT INTO public.user_roles (user_id, role_id)
+VALUES (5, 2), (5, 3);
+
+
+INSERT INTO itens (descricao, valor)
+VALUES 
+    ('Cadeira de Escritório', 199.99),
+    ('Mesa de Jantar', 499.50),
+    ('Lampada LED', 39.90),
+    ('Teclado Mecânico', 120.00),
+    ('Monitor 24"', 800.00);
+	
