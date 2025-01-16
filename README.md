@@ -42,5 +42,22 @@ Dentro das pasta `docker-kong` criar imagem docker com commando ```docker networ
 - ```docker-compose ps```
 - ```docker-compose up -d ```
 
-Após isso acessar `localhost:1337` e criar usuario e senha (a que eu usei foram username:admin, password:ADMINADMIN).
+Após isso acessar `localhost:1337` aonde fica o Konga e criar usuario e senha (a que eu usei foram username:admin, password:ADMINADMIN).
+
+Depois disso é só criar seguinte conexão com o Kong.
+![Conexao](https://github.com/user-attachments/assets/a896a1f8-b5e2-4d2a-b79c-0d10f60e3d92)
+
+Na aba serviços criar cada respectivo serviço `rolemanager`, `itemmanager`, `usermanager`, da seguinte forma (vale lembrar que no host utilizaremos ip da nossa maquina local).
+
+![Capturar](https://github.com/user-attachments/assets/de89f2af-5118-46d0-83de-fabb29c145a5)
+
+E após isso vamos e `routes` e criamos uma rota também para cada serviço.
+
+![Capturar2](https://github.com/user-attachments/assets/2da151c1-b0b1-4e45-bc50-c7cc82759d50)
+
+Com isso nossos serviços estarão todos rodando através da mesma porta no `localhost:8000` nas rotas `http://localhost:8000/usermanager`, `http://localhost:8000/itemmanager`, `http://localhost:8000/rolemanager`, e 
+podemos acessar swagger de cada um respectivamente: http://localhost:8000/usermanager/swagger/index.html#/ (é possivel editar as rotas no swagger para aparecer da forma correta após config do Kong)
+
+
+
 
