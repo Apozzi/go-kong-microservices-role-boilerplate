@@ -24,4 +24,12 @@ Após isso basta utilizar seguinte comando para rodar o backend em cada pasta de
 go run main.go
 ```
 
+Com isso teremos os seguintes microserviços rodando nas seguintes portas.
+
+`item-microservice` = `localhost:8083`
+
+`role-microservice` = `localhost:8082`
+
+`user-microservice` = `localhost:8081`
+
 
