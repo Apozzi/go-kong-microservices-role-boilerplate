@@ -22,7 +22,7 @@ go install
 ```
 Após isso basta utilizar seguinte comando para rodar o backend em cada pasta de cada microserviço:
 ```
-go run main.go
+go run cmd/main.go
 ```
 
 Com isso teremos os seguintes microserviços rodando nas seguintes portas.
