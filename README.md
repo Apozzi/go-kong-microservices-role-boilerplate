@@ -58,6 +58,6 @@ E após isso vamos e `routes` e criamos uma rota também para cada serviço.
 Com isso nossos serviços estarão todos rodando através da mesma porta no `localhost:8000` nas rotas `http://localhost:8000/usermanager`, `http://localhost:8000/itemmanager`, `http://localhost:8000/rolemanager`, e 
 podemos acessar swagger de cada um respectivamente: http://localhost:8000/usermanager/swagger/index.html#/ (é possivel editar as rotas no swagger para aparecer da forma correta após config do Kong)
 
-
-// restruturar https://devopsian.net/p/how-to-structure-a-go-project-start-simple-refactor-later/
-
+<!---
+ restruturar https://devopsian.net/p/how-to-structure-a-go-project-start-simple-refactor-later/
+--!>
