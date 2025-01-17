@@ -20,6 +20,6 @@ go deploy
 
 ## Swagger 
 
-É possivel acessar o swagger do projeto em: http://localhost:8081/swagger/index.html#/
+É possivel acessar o swagger do projeto em: http://localhost:8083/swagger/index.html#/
 
 
