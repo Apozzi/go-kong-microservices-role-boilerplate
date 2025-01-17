@@ -10,7 +10,7 @@ go install
 ```
 Após isso basta utilizar seguinte comando para rodar o backend:
 ```
-go run main.go
+go run cmd/main.go
 ```
 
 ### Deploy 

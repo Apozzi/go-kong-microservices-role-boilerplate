@@ -17,11 +17,11 @@ package main
 
 import (
 	"log"
-	config "login-api/config"
-	controllers "login-api/controllers"
+	config "login-api/internal/config"
+	controllers "login-api/internal/controllers"
+	routers "login-api/internal/routers"
 	middleware "login-api/middleware"
 	"login-api/models"
-	routers "login-api/routers"
 	"os"
 	"reflect"
 
@@ -41,9 +41,7 @@ import (
 
 func AutoMigrate(db *gorm.DB) {
 	models := []interface{}{
-		&models.User{},
 		&models.Role{},
-		&models.UserRole{},
 	}
 
 	for _, model := range models {

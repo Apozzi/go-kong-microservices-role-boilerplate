@@ -1,7 +1,7 @@
 package routers
 
 import (
-	"login-api/controllers"
+	"login-api/internal/controllers"
 	middleware "login-api/middleware"
 	"net/http"
 

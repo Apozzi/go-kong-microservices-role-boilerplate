@@ -1,5 +1,4 @@
 version: '3.8'
-
 services:
   app:
     build: .
@@ -7,27 +6,5 @@ services:
       - "8081:8081"
     env_file:
       - .env
-    depends_on:
-      - postgres
-    networks:
-      - app-network
-
-  postgres:
-    image: postgres:latest
-    ports:
-      - "5432:5432"
-    env_file:
-      - .env
-    environment:
-      - POSTGRES_USER=${POSTGRE_USER}
-      - POSTGRES_PASSWORD=${POSTGRE_PASSWORD}
-      - POSTGRES_DB=${POSTGRE_DBNAME}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-
-volumes:
-  postgres_data:
-
-networks:
-  app-network:
-    driver: bridge
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
