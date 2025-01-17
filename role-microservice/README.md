@@ -21,13 +21,3 @@ go deploy
 ## Swagger 
 
 É possivel acessar o swagger do projeto em: http://localhost:8081/swagger/index.html#/
-
-## Banco de dados
-
-O projeto faz migração automatica.
-
-Mas caso quiser adicionar as tabelas manualmente só acessar "database/addTables",
-e caso quiser adicionar registros de exemplo "database/addData".
-
-Banco de dados Postgres utilizado.
-
