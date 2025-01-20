@@ -7,25 +7,32 @@
 package controllers
 
 import (
-	"database/sql"
-	models "login-api/models"
+	"login-api/internal/usecases"
+	"login-api/models"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 )
+
+type RoleController struct {
+	roleUseCase *usecases.RoleUseCase
+}
+
+func NewRoleController(roleUseCase *usecases.RoleUseCase) *RoleController {
+	return &RoleController{roleUseCase: roleUseCase}
+}
 
 // @Summary Get all roles
 // @Description Get a list of all roles
 // @Tags roles
 // @Accept json
 // @Produce json
-// @Success 200 {object} Response{data=[]models.Role} "Success"
+// @Success 200 {object} Response{data=[]domains.Role} "Success"
 // @Failure 500 {object} ErrorResponse{error=string} "Internal Server Error"
 // @Router /roles [get]
-func GetRoles(c *gin.Context) {
-	var roles []models.Role
-	result := db.Find(&roles)
-	if result.Error != nil {
+func (ctrl *RoleController) GetRoles(c *gin.Context) {
+	roles, err := ctrl.roleUseCase.GetAll()
+	if err != nil {
 		c.JSON(500, ErrorResponse{
 			Error: "Failed to retrieve roles",
 		})
@@ -43,12 +50,18 @@ func GetRoles(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path string true "Role ID"
-// @Success 200 {object} Response{data=models.Role} "Success"
+// @Success 200 {object} Response{data=domains.Role} "Success"
 // @Router /roles/{id} [get]
-func GetRole(c *gin.Context) {
+func (ctrl *RoleController) GetRole(c *gin.Context) {
 	id := c.Param("id")
-	var role models.Role
-	db.Where("id = @id", sql.Named("id", id)).Find(&role)
+	role, err := ctrl.roleUseCase.GetByID(id)
+	if err != nil {
+		c.JSON(404, ErrorResponse{
+			Error: "Role not found",
+		})
+		return
+	}
+
 	c.JSON(200, Response{
 		Data: role,
 	})
@@ -59,40 +72,39 @@ func GetRole(c *gin.Context) {
 // @Tags roles
 // @Accept json
 // @Produce json
-// @Param role body models.Role true "Role information"
-// @Success 200 {object} Response{data=models.Role} "Success"
+// @Param role body domains.Role true "Role information"
+// @Success 200 {object} Response{data=domains.Role} "Success"
 // @Failure 400 {object} ErrorResponse{errors=map[string]string} "Validation Error"
 // @Failure 409 {object} ErrorResponse{error=string} "Role Already Exists"
 // @Failure 500 {object} ErrorResponse{error=string} "Internal Server Error"
-func PostRole(c *gin.Context) {
+func (ctrl *RoleController) CreateRole(c *gin.Context) {
 	var role models.Role
 	if err := c.ShouldBindJSON(&role); err != nil {
-		validationErrors := err.(validator.ValidationErrors)
-		errorMessages := make(map[string]string)
-		for _, fieldErr := range validationErrors {
-			fieldName := fieldErr.Field()
-			switch fieldName {
-			case "Name":
-				errorMessages["name"] = "Role name is required"
-			case "Description":
-				errorMessages["description"] = "Role description is required"
+		if validationErrors, ok := err.(validator.ValidationErrors); ok {
+			errorMessages := make(map[string]string)
+			for _, fieldErr := range validationErrors {
+				switch fieldErr.Field() {
+				case "Name":
+					errorMessages["name"] = "Role name is required"
+				case "Description":
+					errorMessages["description"] = "Role description is required"
+				}
 			}
+			c.JSON(400, ErrorResponse{
+				Errors: errorMessages,
+			})
+			return
 		}
-		c.JSON(400, ErrorResponse{
-			Errors: errorMessages,
-		})
-		return
 	}
 
-	var existingRole models.Role
-	if err := db.Where("name = ?", role.Name).First(&existingRole).Error; err == nil {
-		c.JSON(409, ErrorResponse{
-			Error: "Role already exists",
-		})
-		return
-	}
-
-	if result := db.Create(&role); result.Error != nil {
+	err := ctrl.roleUseCase.Create(&role)
+	if err != nil {
+		if err.Error() == "role already exists" {
+			c.JSON(409, ErrorResponse{
+				Error: "Role already exists",
+			})
+			return
+		}
 		c.JSON(500, ErrorResponse{
 			Error: "Failed to create role",
 		})
@@ -110,28 +122,29 @@ func PostRole(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path string true "Role ID"
-// @Param role body models.Role true "Updated role information"
-// @Success 200 {object} Response{data=models.Role} "Success"
+// @Param role body domains.Role true "Updated role information"
+// @Success 200 {object} Response{data=domains.Role} "Success"
 // @Failure 404 {object} ErrorResponse{error=string} "Role Not Found"
 // @Failure 400 {object} ErrorResponse{error=string} "Invalid Data"
 // @Failure 500 {object} ErrorResponse{error=string} "Update Failed"
-func PutRole(c *gin.Context) {
+func (ctrl *RoleController) UpdateRole(c *gin.Context) {
 	id := c.Param("id")
 	var role models.Role
-	if err := db.Where("id = ?", id).First(&role).Error; err != nil {
-		c.JSON(404, ErrorResponse{
-			Error: "Role not found",
-		})
-		return
-	}
-
 	if err := c.ShouldBindJSON(&role); err != nil {
 		c.JSON(400, ErrorResponse{
 			Error: "Invalid data provided",
 		})
 		return
 	}
-	if result := db.Save(&role); result.Error != nil {
+
+	err := ctrl.roleUseCase.Update(id, &role)
+	if err != nil {
+		if err.Error() == "role not found" {
+			c.JSON(404, ErrorResponse{
+				Error: "Role not found",
+			})
+			return
+		}
 		c.JSON(500, ErrorResponse{
 			Error: "Failed to update role",
 		})
@@ -154,27 +167,25 @@ func PutRole(c *gin.Context) {
 // @Failure 400 {object} ErrorResponse{error=string} "Role In Use"
 // @Failure 500 {object} ErrorResponse{error=string} "Delete Failed"
 // @Router /roles/{id} [delete]
-func DeleteRole(c *gin.Context) {
+func (ctrl *RoleController) DeleteRole(c *gin.Context) {
 	id := c.Param("id")
-	var role models.Role
-	if err := db.Where("id = ?", id).First(&role).Error; err != nil {
-		c.JSON(404, ErrorResponse{
-			Error: "Role not found",
-		})
-		return
-	}
-	var count int64
-	db.Table("user_roles").Where("role_id = ?", id).Count(&count)
-	if count > 0 {
-		c.JSON(400, ErrorResponse{
-			Error: "Cannot delete role as it is assigned to users",
-		})
-		return
-	}
-	if result := db.Delete(&role); result.Error != nil {
-		c.JSON(500, ErrorResponse{
-			Error: "Failed to delete role",
-		})
+
+	err := ctrl.roleUseCase.Delete(id)
+	if err != nil {
+		switch err.Error() {
+		case "role not found":
+			c.JSON(404, ErrorResponse{
+				Error: "Role not found",
+			})
+		case "role is assigned to users":
+			c.JSON(400, ErrorResponse{
+				Error: "Cannot delete role as it is assigned to users",
+			})
+		default:
+			c.JSON(500, ErrorResponse{
+				Error: "Failed to delete role",
+			})
+		}
 		return
 	}
 

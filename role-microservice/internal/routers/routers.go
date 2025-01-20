@@ -15,7 +15,7 @@ const (
 	ROLE_WATCHER  = "Watcher"
 )
 
-func Routers(router *gin.Engine) {
+func Routers(router *gin.Engine, roleController *controllers.RoleController) {
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"*"},
 		AllowHeaders:     []string{"*"},
@@ -33,11 +33,11 @@ func Routers(router *gin.Engine) {
 	{
 		roleRoutes := privateRoute.Group("role")
 		{
-			roleRoutes.GET("", middleware.RequireRoles(ROLE_ADMIN), controllers.GetRoles)
-			roleRoutes.GET(":id", middleware.RequireRoles(ROLE_ADMIN), controllers.GetRole)
-			roleRoutes.POST("", middleware.RequireRoles(ROLE_ADMIN), controllers.PostRole)
-			roleRoutes.PUT(":id", middleware.RequireRoles(ROLE_ADMIN), controllers.PutRole)
-			roleRoutes.DELETE(":id", middleware.RequireRoles(ROLE_ADMIN), controllers.DeleteRole)
+			roleRoutes.GET("", middleware.RequireRoles(ROLE_ADMIN), roleController.GetRoles)
+			roleRoutes.GET(":id", middleware.RequireRoles(ROLE_ADMIN), roleController.GetRole)
+			roleRoutes.POST("", middleware.RequireRoles(ROLE_ADMIN), roleController.CreateRole)
+			roleRoutes.PUT(":id", middleware.RequireRoles(ROLE_ADMIN), roleController.UpdateRole)
+			roleRoutes.DELETE(":id", middleware.RequireRoles(ROLE_ADMIN), roleController.DeleteRole)
 		}
 	}
 }

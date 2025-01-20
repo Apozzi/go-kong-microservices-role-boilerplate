@@ -19,11 +19,15 @@ import (
 	"log"
 	config "login-api/internal/config"
 	controllers "login-api/internal/controllers"
+	"login-api/internal/repositories"
 	routers "login-api/internal/routers"
+	"login-api/internal/usecases"
 	middleware "login-api/middleware"
 	"login-api/models"
 	"os"
 	"reflect"
+
+	amqp "github.com/rabbitmq/amqp091-go"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -55,6 +59,37 @@ func AutoMigrate(db *gorm.DB) {
 	}
 }
 
+func setupRabbitMQ() (*amqp.Connection, *amqp.Channel, error) {
+	// Adicionar RabbitMq go get github.com/rabbitmq/amqp091-go
+	conn, err := amqp.Dial(os.Getenv("RABBITMQ_URL"))
+	if err != nil {
+		return nil, nil, err
+	}
+
+	ch, err := conn.Channel()
+	if err != nil {
+		conn.Close()
+		return nil, nil, err
+	}
+
+	err = ch.ExchangeDeclare(
+		"user_events",
+		"topic",
+		true,
+		false,
+		false,
+		false,
+		nil,
+	)
+	if err != nil {
+		ch.Close()
+		conn.Close()
+		return nil, nil, err
+	}
+
+	return conn, ch, nil
+}
+
 func main() {
 	godotenv.Load()
 	db := config.Connect()
@@ -63,7 +98,23 @@ func main() {
 	jwtAuth, _ := middleware.NewJWTTokenMaker(secretKey)
 	controllers.Initialize(config.Connect(), jwtAuth)
 	router := gin.Default()
-	routers.Routers(router)
+	rabbitmqConn, rabbitmqChan, err := setupRabbitMQ()
+	if err != nil {
+		log.Fatalf("Failed to setup RabbitMQ: %v", err)
+	}
+	defer rabbitmqConn.Close()
+	defer rabbitmqChan.Close()
+
+	// Repositories
+	userRepo := repositories.NewGormUserRepository(db)
+
+	// Use Cases
+	userUseCase := usecases.NewUserUseCase(userRepo, rabbitmqChan)
+
+	// Controllers
+	userController := controllers.NewUserController(userUseCase)
+
+	routers.Routers(router, userController)
 	// Para acessar o swagger: http://localhost:8081/swagger/index.html#/
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	port := os.Getenv("PORT")

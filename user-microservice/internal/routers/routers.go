@@ -15,7 +15,7 @@ const (
 	ROLE_WATCHER  = "Watcher"
 )
 
-func Routers(router *gin.Engine) {
+func Routers(router *gin.Engine, userController *controllers.UserController) {
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"*"},
 		AllowHeaders:     []string{"*"},
@@ -36,14 +36,14 @@ func Routers(router *gin.Engine) {
 
 		userRoutes := privateRoute.Group("user")
 		{
-			userRoutes.GET("", middleware.RequireRoles(ROLE_ADMIN), controllers.GetUsers)
-			userRoutes.GET(":id", middleware.RequireRoles(ROLE_ADMIN), controllers.GetUser)
-			userRoutes.POST("", middleware.RequireRoles(ROLE_ADMIN), controllers.PostUser)
-			userRoutes.PUT(":id", middleware.RequireRoles(ROLE_ADMIN), controllers.PutUser)
-			userRoutes.DELETE(":id", middleware.RequireRoles(ROLE_ADMIN), controllers.DeleteUser)
+			userRoutes.GET("", middleware.RequireRoles(ROLE_ADMIN), userController.GetUsers)
+			userRoutes.GET(":id", middleware.RequireRoles(ROLE_ADMIN), userController.GetUser)
+			userRoutes.POST("", middleware.RequireRoles(ROLE_ADMIN), userController.CreateUser)
+			userRoutes.PUT(":id", middleware.RequireRoles(ROLE_ADMIN), userController.UpdateUser)
+			userRoutes.DELETE(":id", middleware.RequireRoles(ROLE_ADMIN), userController.DeleteUser)
 
-			userRoutes.POST(":userId/roles/:roleId", middleware.RequireRoles(ROLE_ADMIN), controllers.AddRoleToUser)
-			userRoutes.DELETE("remove/:userId/roles/:roleId", middleware.RequireRoles(ROLE_ADMIN), controllers.RemoveRoleFromUser)
+			userRoutes.POST(":userId/roles/:roleId", middleware.RequireRoles(ROLE_ADMIN), userController.AddRoleToUser)
+			userRoutes.DELETE("remove/:userId/roles/:roleId", middleware.RequireRoles(ROLE_ADMIN), userController.RemoveRoleFromUser)
 		}
 	}
 }

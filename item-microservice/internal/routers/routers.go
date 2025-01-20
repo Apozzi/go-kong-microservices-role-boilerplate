@@ -15,7 +15,7 @@ const (
 	ROLE_WATCHER  = "Watcher"
 )
 
-func Routers(router *gin.Engine) {
+func Routers(router *gin.Engine, itemController *controllers.ItemController) {
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"*"},
 		AllowHeaders:     []string{"*"},
@@ -31,14 +31,13 @@ func Routers(router *gin.Engine) {
 	privateRoute := router.Group("")
 	privateRoute.Use(controllers.Authenticate)
 	{
-
 		itemRoutes := privateRoute.Group("item")
 		{
-			itemRoutes.GET("", middleware.RequireRoles(ROLE_ADMIN, ROLE_MODIFIER, ROLE_WATCHER), controllers.GetItems)
-			itemRoutes.GET(":id", middleware.RequireRoles(ROLE_ADMIN, ROLE_MODIFIER, ROLE_WATCHER), controllers.GetItem)
-			itemRoutes.POST("", middleware.RequireRoles(ROLE_ADMIN, ROLE_MODIFIER), controllers.PostItem)
-			itemRoutes.PUT(":id", middleware.RequireRoles(ROLE_ADMIN, ROLE_MODIFIER), controllers.PutItem)
-			itemRoutes.DELETE(":id", middleware.RequireRoles(ROLE_ADMIN, ROLE_MODIFIER), controllers.DeleteItem)
+			itemRoutes.GET("", middleware.RequireRoles(ROLE_ADMIN, ROLE_MODIFIER, ROLE_WATCHER), itemController.GetItems)
+			itemRoutes.GET(":id", middleware.RequireRoles(ROLE_ADMIN, ROLE_MODIFIER, ROLE_WATCHER), itemController.GetItem)
+			itemRoutes.POST("", middleware.RequireRoles(ROLE_ADMIN, ROLE_MODIFIER), itemController.CreateItem)
+			itemRoutes.PUT(":id", middleware.RequireRoles(ROLE_ADMIN, ROLE_MODIFIER), itemController.UpdateItem)
+			itemRoutes.DELETE(":id", middleware.RequireRoles(ROLE_ADMIN, ROLE_MODIFIER), itemController.DeleteItem)
 		}
 	}
 }

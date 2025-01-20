@@ -7,25 +7,32 @@
 package controllers
 
 import (
-	models "login-api/models"
-	"time"
+	"login-api/internal/usecases"
+	"login-api/models"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 )
+
+type ItemController struct {
+	itemUseCase *usecases.ItemUseCase
+}
+
+func NewItemController(itemUseCase *usecases.ItemUseCase) *ItemController {
+	return &ItemController{itemUseCase: itemUseCase}
+}
 
 // @Summary List all items
 // @Description Get a list of all registered items
 // @Tags items
 // @Accept json
 // @Produce json
-// @Success 200 {object} Response{data=[]models.Item} "Success"
+// @Success 200 {object} Response{data=[]domains.Item} "Success"
 // @Failure 500 {object} ErrorResponse{error=string} "Internal Server Error"
 // @Router /items [get]
-func GetItems(c *gin.Context) {
-	var items []models.Item
-	result := db.Find(&items)
-	if result.Error != nil {
+func (ctrl *ItemController) GetItems(c *gin.Context) {
+	items, err := ctrl.itemUseCase.GetAll()
+	if err != nil {
 		c.JSON(500, ErrorResponse{
 			Error: "Failed to retrieve items",
 		})
@@ -43,14 +50,13 @@ func GetItems(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path string true "Item ID"
-// @Success 200 {object} Response{data=models.Item} "Success"
+// @Success 200 {object} Response{data=domains.Item} "Success"
 // @Failure 404 {object} ErrorResponse{error=string} "Item not found"
 // @Router /items/{id} [get]
-func GetItem(c *gin.Context) {
+func (ctrl *ItemController) GetItem(c *gin.Context) {
 	id := c.Param("id")
-	var item models.Item
-
-	if err := db.Where("id = ?", id).First(&item).Error; err != nil {
+	item, err := ctrl.itemUseCase.GetByID(id)
+	if err != nil {
 		c.JSON(404, ErrorResponse{
 			Error: "Item not found",
 		})
@@ -67,42 +73,47 @@ func GetItem(c *gin.Context) {
 // @Tags items
 // @Accept json
 // @Produce json
-// @Param item body models.Item true "Item information"
-// @Success 201 {object} Response{data=models.Item} "Item created successfully"
+// @Param item body domains.Item true "Item information"
+// @Success 201 {object} Response{data=domains.Item} "Item created successfully"
 // @Failure 400 {object} ErrorResponse{errors=map[string]string} "Validation error"
 // @Failure 500 {object} ErrorResponse{error=string} "Failed to create item"
 // @Router /items [post]
-func PostItem(c *gin.Context) {
+func (ctrl *ItemController) CreateItem(c *gin.Context) {
 	var item models.Item
 	if err := c.ShouldBindJSON(&item); err != nil {
-		validationErrors := err.(validator.ValidationErrors)
-		errorMessages := make(map[string]string)
-		for _, fieldErr := range validationErrors {
-			fieldName := fieldErr.Field()
-			switch fieldName {
-			case "Descricao":
-				errorMessages["descricao"] = "Descrição é obrigatória"
-			case "Valor":
-				errorMessages["valor"] = "Valor é obrigatório"
+		if validationErrors, ok := err.(validator.ValidationErrors); ok {
+			errorMessages := make(map[string]string)
+			for _, fieldErr := range validationErrors {
+				switch fieldErr.Field() {
+				case "Descricao":
+					errorMessages["descricao"] = "Descrição é obrigatória"
+				case "Valor":
+					errorMessages["valor"] = "Valor é obrigatório"
+				}
 			}
+			c.JSON(400, ErrorResponse{
+				Errors: errorMessages,
+			})
+			return
 		}
+
 		c.JSON(400, ErrorResponse{
-			Errors: errorMessages,
-		})
-		return
-	}
-	item.CriadoEm = time.Now()
-	item.AtualizadoEm = time.Now()
-	if item.Valor <= 0 {
-		c.JSON(400, ErrorResponse{
-			Error: "Valor deve ser maior que zero",
+			Error: "Invalid request format",
 		})
 		return
 	}
 
-	if result := db.Create(&item); result.Error != nil {
+	err := ctrl.itemUseCase.Create(&item)
+	if err != nil {
+		if err.Error() == "valor deve ser maior que zero" {
+			c.JSON(400, ErrorResponse{
+				Error: err.Error(),
+			})
+			return
+		}
+
 		c.JSON(500, ErrorResponse{
-			Error: "Falha ao criar item",
+			Error: "Failed to create item",
 		})
 		return
 	}
@@ -118,44 +129,39 @@ func PostItem(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path string true "Item ID"
-// @Param item body models.Item true "Updated item information"
-// @Success 200 {object} Response{data=models.Item} "Item updated successfully"
+// @Param item body domains.Item true "Updated item information"
+// @Success 200 {object} Response{data=domains.Item} "Item updated successfully"
 // @Failure 400 {object} ErrorResponse{error=string} "Invalid data provided"
 // @Failure 404 {object} ErrorResponse{error=string} "Item not found"
 // @Failure 500 {object} ErrorResponse{error=string} "Failed to update item"
 // @Router /items/{id} [put]
-func PutItem(c *gin.Context) {
+func (ctrl *ItemController) UpdateItem(c *gin.Context) {
 	id := c.Param("id")
 	var item models.Item
-	if err := db.Where("id = ?", id).First(&item).Error; err != nil {
-		c.JSON(404, ErrorResponse{
-			Error: "Item não encontrado",
-		})
-		return
-	}
-	oldItem := item
+
 	if err := c.ShouldBindJSON(&item); err != nil {
 		c.JSON(400, ErrorResponse{
-			Error: "Dados inválidos fornecidos",
+			Error: "Invalid data provided",
 		})
 		return
 	}
 
-	if item.Valor <= 0 {
-		c.JSON(400, ErrorResponse{
-			Error: "Valor deve ser maior que zero",
-		})
-		return
-	}
-
-	item.AtualizadoEm = time.Now()
-	item.CriadoEm = oldItem.CriadoEm
-	item.ID = oldItem.ID
-
-	if result := db.Save(&item); result.Error != nil {
-		c.JSON(500, ErrorResponse{
-			Error: "Falha ao atualizar item",
-		})
+	err := ctrl.itemUseCase.Update(id, &item)
+	if err != nil {
+		switch err.Error() {
+		case "item not found":
+			c.JSON(404, ErrorResponse{
+				Error: "Item não encontrado",
+			})
+		case "valor deve ser maior que zero":
+			c.JSON(400, ErrorResponse{
+				Error: "Valor deve ser maior que zero",
+			})
+		default:
+			c.JSON(500, ErrorResponse{
+				Error: "Failed to update item",
+			})
+		}
 		return
 	}
 
@@ -174,20 +180,20 @@ func PutItem(c *gin.Context) {
 // @Failure 404 {object} ErrorResponse{error=string} "Item not found"
 // @Failure 500 {object} ErrorResponse{error=string} "Failed to delete item"
 // @Router /items/{id} [delete]
-func DeleteItem(c *gin.Context) {
+func (ctrl *ItemController) DeleteItem(c *gin.Context) {
 	id := c.Param("id")
-	var item models.Item
 
-	if err := db.Where("id = ?", id).First(&item).Error; err != nil {
-		c.JSON(404, ErrorResponse{
-			Error: "Item não encontrado",
-		})
-		return
-	}
+	err := ctrl.itemUseCase.Delete(id)
+	if err != nil {
+		if err.Error() == "item not found" {
+			c.JSON(404, ErrorResponse{
+				Error: "Item não encontrado",
+			})
+			return
+		}
 
-	if result := db.Delete(&item); result.Error != nil {
 		c.JSON(500, ErrorResponse{
-			Error: "Falha ao deletar item",
+			Error: "Failed to delete item",
 		})
 		return
 	}

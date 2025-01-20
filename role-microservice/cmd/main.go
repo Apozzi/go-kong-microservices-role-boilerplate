@@ -19,7 +19,9 @@ import (
 	"log"
 	config "login-api/internal/config"
 	controllers "login-api/internal/controllers"
+	"login-api/internal/repositories"
 	routers "login-api/internal/routers"
+	"login-api/internal/usecases"
 	middleware "login-api/middleware"
 	"login-api/models"
 	"os"
@@ -61,7 +63,17 @@ func main() {
 	jwtAuth, _ := middleware.NewJWTTokenMaker(secretKey)
 	controllers.Initialize(config.Connect(), jwtAuth)
 	router := gin.Default()
-	routers.Routers(router)
+
+	// Repository
+	roleRepo := repositories.NewGormRoleRepository(db)
+
+	// Use Case
+	roleUseCase := usecases.NewRoleUseCase(roleRepo)
+
+	// Controller
+	roleController := controllers.NewRoleController(roleUseCase)
+
+	routers.Routers(router, roleController)
 	// Para acessar o swagger: http://localhost:8081/swagger/index.html#/
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	port := os.Getenv("PORT")

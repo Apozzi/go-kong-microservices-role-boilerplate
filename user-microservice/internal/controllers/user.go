@@ -7,31 +7,34 @@
 package controllers
 
 import (
-	"database/sql"
-	"fmt"
+	"login-api/internal/usecases"
 	models "login-api/models"
 	"strconv"
-	"time"
 
 	"github.com/go-playground/validator/v10"
 
 	"github.com/gin-gonic/gin"
 )
 
+type UserController struct {
+	userUseCase *usecases.UserUseCase
+}
+
+func NewUserController(userUseCase *usecases.UserUseCase) *UserController {
+	return &UserController{userUseCase: userUseCase}
+}
+
 // @Summary Get all users
 // @Description Get a list of all users with their roles
 // @Tags users
 // @Accept json
 // @Produce json
-// @Success 200 {object} Response{data=[]models.User} "Success"
+// @Success 200 {object} Response{data=[]domains.User} "Success"
 // @Failure 500 {object} ErrorResponse "Internal Server Error"
 // @Router /users [get]
-func GetUsers(c *gin.Context) {
-	var users []models.User
-	result := db.Joins("JOIN user_roles ur ON ur.user_id = users.id").
-		Joins("JOIN roles r ON r.id = ur.role_id").
-		Preload("Roles").Find(&users)
-	if result.Error != nil {
+func (ctrl *UserController) GetUsers(c *gin.Context) {
+	users, err := ctrl.userUseCase.GetAll()
+	if err != nil {
 		c.JSON(500, ErrorResponse{
 			Error: "Failed to retrieve users",
 		})
@@ -49,12 +52,26 @@ func GetUsers(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path string true "User ID"
-// @Success 200 {object} Response{data=models.User} "Success"
+// @Success 200 {object} Response{data=domains.User} "Success"
+// @Failure 404 {object} ErrorResponse{error=string} "User Not Found"
 // @Router /users/{id} [get]
-func GetUser(c *gin.Context) {
-	id := c.Param("id")
-	var user models.User
-	db.Where("id_user = @idUser", sql.Named("idUser", id)).Find(&user)
+func (ctrl *UserController) GetUser(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		c.JSON(400, ErrorResponse{
+			Error: "Invalid user ID",
+		})
+		return
+	}
+
+	user, err := ctrl.userUseCase.GetByID(id)
+	if err != nil {
+		c.JSON(404, ErrorResponse{
+			Error: "User not found",
+		})
+		return
+	}
+
 	c.JSON(200, Response{
 		Data: user,
 	})
@@ -65,51 +82,50 @@ func GetUser(c *gin.Context) {
 // @Tags users
 // @Accept json
 // @Produce json
-// @Param user body models.User true "User information"
-// @Success 200 {object} Response{data=models.User} "Success"
+// @Param user body domains.User true "User information"
+// @Success 200 {object} Response{data=domains.User} "Success"
 // @Failure 400 {object} ErrorResponse "Validation Error"
 // @Failure 409 {object} ErrorResponse "User Already Exists"
 // @Failure 500 {object} ErrorResponse "Internal Server Error"
 // @Router /users [post]
-func PostUser(c *gin.Context) {
+func (ctrl *UserController) CreateUser(c *gin.Context) {
 	var user models.User
 	if err := c.ShouldBindJSON(&user); err != nil {
-		validationErrors := err.(validator.ValidationErrors)
-		errorMessages := make(map[string]string)
-		for _, fieldErr := range validationErrors {
-			fieldName := fieldErr.Field()
-			switch fieldName {
-			case "Name":
-				errorMessages["name"] = "Name is required"
-			case "Role":
-				errorMessages["role"] = "Role is required"
-			case "Email":
-				if fieldErr.Tag() == "required" {
-					errorMessages["email"] = "Email is required"
-				} else if fieldErr.Tag() == "email" {
-					errorMessages["email"] = "Invalid email format"
+		if validationErrors, ok := err.(validator.ValidationErrors); ok {
+			errorMessages := make(map[string]string)
+			for _, fieldErr := range validationErrors {
+				switch fieldErr.Field() {
+				case "Name":
+					errorMessages["name"] = "Name is required"
+				case "Email":
+					if fieldErr.Tag() == "required" {
+						errorMessages["email"] = "Email is required"
+					} else if fieldErr.Tag() == "email" {
+						errorMessages["email"] = "Invalid email format"
+					}
 				}
 			}
+			c.JSON(400, ErrorResponse{
+				Errors: errorMessages,
+			})
+			return
 		}
-		c.JSON(400, ErrorResponse{
-			Errors: errorMessages,
-		})
-		return
 	}
-	var existingUser models.User
-	if err := db.Where("email = ?", user.Email).First(&existingUser).Error; err == nil {
-		c.JSON(409, ErrorResponse{ // Verifica cadastro de usuários repetidos através do Email.
-			Error: "User already registered",
-		})
-		return
-	}
-	user.RegisterDate = time.Now()
-	if result := db.Create(&user); result.Error != nil {
+
+	err := ctrl.userUseCase.Create(&user)
+	if err != nil {
+		if err.Error() == "user already registered" {
+			c.JSON(409, ErrorResponse{
+				Error: "User already registered",
+			})
+			return
+		}
 		c.JSON(500, ErrorResponse{
 			Error: "Failed to create user",
 		})
 		return
 	}
+
 	c.JSON(200, Response{
 		Data: user,
 	})
@@ -121,15 +137,42 @@ func PostUser(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path string true "User ID"
-// @Param user body models.User true "Updated user information"
-// @Success 200 {object} Response{data=models.User} "Success"
+// @Param user body domains.User true "Updated user information"
+// @Success 200 {object} Response{data=domains.User} "Success"
+// @Failure 404 {object} ErrorResponse{error=string} "User Not Found"
+// @Failure 400 {object} ErrorResponse{error=string} "Invalid Data"
 // @Router /users/{id} [put]
-func PutUser(c *gin.Context) {
+func (ctrl *UserController) UpdateUser(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		c.JSON(400, ErrorResponse{
+			Error: "Invalid user ID",
+		})
+		return
+	}
+
 	var user models.User
-	id := c.Param("id")
-	c.BindJSON(&user)
-	user.ID, _ = strconv.ParseUint(id, 10, 64)
-	db.Save(&user)
+	if err := c.ShouldBindJSON(&user); err != nil {
+		c.JSON(400, ErrorResponse{
+			Error: "Invalid data provided",
+		})
+		return
+	}
+
+	err = ctrl.userUseCase.Update(id, &user)
+	if err != nil {
+		if err.Error() == "user not found" {
+			c.JSON(404, ErrorResponse{
+				Error: "User not found",
+			})
+			return
+		}
+		c.JSON(500, ErrorResponse{
+			Error: "Failed to update user",
+		})
+		return
+	}
+
 	c.JSON(200, Response{
 		Data: user,
 	})
@@ -141,28 +184,36 @@ func PutUser(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path string true "User ID"
-// @Success 200 {object} Response{data=models.User} "Success"
+// @Success 200 {object} Response{message=string} "Success"
+// @Failure 404 {object} ErrorResponse{error=string} "User Not Found"
+// @Failure 500 {object} ErrorResponse{error=string} "Delete Failed"
 // @Router /users/{id} [delete]
-func DeleteUser(c *gin.Context) {
-	id := c.Param("id")
-	var user models.User
-	db.Where("id_user = @idUser", sql.Named("idUser", id)).Delete(&user)
+func (ctrl *UserController) DeleteUser(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		c.JSON(400, ErrorResponse{
+			Error: "Invalid user ID",
+		})
+		return
+	}
+
+	err = ctrl.userUseCase.Delete(id)
+	if err != nil {
+		if err.Error() == "user not found" {
+			c.JSON(404, ErrorResponse{
+				Error: "User not found",
+			})
+			return
+		}
+		c.JSON(500, ErrorResponse{
+			Error: "Failed to delete user",
+		})
+		return
+	}
+
 	c.JSON(200, Response{
-		Data: user,
+		Message: "User successfully deleted",
 	})
-}
-
-func getUserAndRole(userID, roleID int) (models.User, models.Role, error) {
-	var user models.User
-	var role models.Role
-	if err := db.Where("id = ?", userID).First(&user).Error; err != nil {
-		return user, role, fmt.Errorf("user not found")
-	}
-	if err := db.Where("id = ?", roleID).First(&role).Error; err != nil {
-		return user, role, fmt.Errorf("role not found")
-	}
-
-	return user, role, nil
 }
 
 // @Summary Add role to user
@@ -172,39 +223,32 @@ func getUserAndRole(userID, roleID int) (models.User, models.Role, error) {
 // @Produce json
 // @Param userId path string true "User ID"
 // @Param roleId path string true "Role ID"
-// @Success 200 {object} Response{message=string,user=models.User,role=models.Role} "Success"
+// @Success 200 {object} Response{message=string} "Success"
 // @Failure 400 {object} ErrorResponse "Invalid ID"
 // @Failure 404 {object} ErrorResponse "User or Role Not Found"
 // @Failure 500 {object} ErrorResponse "Internal Server Error"
 // @Router /users/{userId}/roles/{roleId} [post]
-func AddRoleToUser(c *gin.Context) {
-	userID, err := strconv.Atoi(c.Param("userId"))
+func (ctrl *UserController) AddRoleToUser(c *gin.Context) {
+	userID, err := strconv.ParseUint(c.Param("userId"), 10, 64)
 	if err != nil {
 		c.JSON(400, ErrorResponse{Error: "Invalid user ID"})
 		return
 	}
 
-	roleID, err := strconv.Atoi(c.Param("roleId"))
-	if err != nil {
-		c.JSON(400, ErrorResponse{Error: "Invalid role ID"})
-		return
-	}
+	roleID := c.Param("roleId")
 
-	user, role, err := getUserAndRole(userID, roleID)
+	err = ctrl.userUseCase.AddRoleToUser(userID, roleID)
 	if err != nil {
-		c.JSON(404, ErrorResponse{Error: err.Error()})
-		return
-	}
-
-	if err := db.Model(&user).Association("Roles").Append(&role); err != nil {
+		if err.Error() == "user not found" {
+			c.JSON(404, ErrorResponse{Error: "User not found"})
+			return
+		}
 		c.JSON(500, ErrorResponse{Error: "Failed to associate role with user"})
 		return
 	}
 
-	c.JSON(200, gin.H{
-		"message": "Role successfully added to user",
-		"user":    user,
-		"role":    role,
+	c.JSON(200, Response{
+		Message: "Role successfully added to user",
 	})
 }
 
@@ -215,38 +259,31 @@ func AddRoleToUser(c *gin.Context) {
 // @Produce json
 // @Param userId path string true "User ID"
 // @Param roleId path string true "Role ID"
-// @Success 200 {object} Response{message=string,user=models.User,role=models.Role} "Success"
+// @Success 200 {object} Response{message=string} "Success"
 // @Failure 400 {object} ErrorResponse "Invalid ID"
 // @Failure 404 {object} ErrorResponse "User or Role Not Found"
 // @Failure 500 {object} ErrorResponse "Internal Server Error"
 // @Router /users/{userId}/roles/{roleId} [delete]
-func RemoveRoleFromUser(c *gin.Context) {
-	userID, err := strconv.Atoi(c.Param("userId"))
+func (ctrl *UserController) RemoveRoleFromUser(c *gin.Context) {
+	userID, err := strconv.ParseUint(c.Param("userId"), 10, 64)
 	if err != nil {
 		c.JSON(400, ErrorResponse{Error: "Invalid user ID"})
 		return
 	}
 
-	roleID, err := strconv.Atoi(c.Param("roleId"))
-	if err != nil {
-		c.JSON(400, ErrorResponse{Error: "Invalid role ID"})
-		return
-	}
+	roleID := c.Param("roleId")
 
-	user, role, err := getUserAndRole(userID, roleID)
+	err = ctrl.userUseCase.RemoveRoleFromUser(userID, roleID)
 	if err != nil {
-		c.JSON(404, ErrorResponse{Error: err.Error()})
-		return
-	}
-
-	if err := db.Model(&user).Association("Roles").Delete(&role); err != nil {
+		if err.Error() == "user not found" {
+			c.JSON(404, ErrorResponse{Error: "User not found"})
+			return
+		}
 		c.JSON(500, ErrorResponse{Error: "Failed to remove role from user"})
 		return
 	}
 
-	c.JSON(200, gin.H{
-		"message": "Role successfully removed from user",
-		"user":    user,
-		"role":    role,
+	c.JSON(200, Response{
+		Message: "Role successfully removed to user",
 	})
 }
