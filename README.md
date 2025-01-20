@@ -44,7 +44,7 @@ Com isso teremos os seguintes microserviços rodando nas seguintes portas.
 
 `user-microservice` = `localhost:8081`
 
-O `email-microservice` não roda nenhuma porta e só serve para se comunicar com outros serviços através do rabbitMq.
+O `email-microservice` não roda nenhuma porta e só serve para se comunicar com outros serviços através do rabbitMQ.
 
 Ao rodar cada microserviço ele fará migrate na base criando todas as tabelas no Postgres, também é possivel fazer criação de tabela e registros através da pasta `database`.
 
