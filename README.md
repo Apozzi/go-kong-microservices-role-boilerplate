@@ -12,7 +12,7 @@ O backend roda utilizando Go 1.17, é importante que tenha Postgres instalado e 
 
 Primeiramente devemos ter broker executando na nossa maquina, com docker instalado, podemos rodar através do comando docker.:
 
-`docker run -it --rm --name rabbitmq -p 5672:5672 -p 15672:15672 rabbitmq:4.0-management` 
+`docker run -it --rm --name rabbitMQ -p 5672:5672 -p 15672:15672 rabbitmq:4.0-management` 
 
 Com isso verificamos se rabbitMq está rodando e se quisermos podemos acessar `http://localhost:15672/#/` (User:guest, senha:guest)
 
