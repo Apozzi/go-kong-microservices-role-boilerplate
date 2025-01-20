@@ -3,6 +3,9 @@ Microserviços feitos em golang utilizando frameworks Gin e o a ORM do Gorm e Ko
 
 Os serviços tem modelos de usuário e permissões por papeis.
 
+## Arquitetura
+
+![Capturar](https://github.com/user-attachments/assets/0cf6b2f4-b8ac-4fe6-80c5-2d55ca12a0d9)
 
 ## Como rodar?
 O backend roda utilizando Go 1.17, é importante que tenha Postgres instalado e rodando na maquina.
