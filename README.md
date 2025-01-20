@@ -1,5 +1,5 @@
 # Login Role Microservices Backend
-Microserviços feitos em golang utilizando frameworks Gin e o a ORM do Gorm e Kong como Api Gateway.
+Microserviços feitos em golang utilizando frameworks Gin e o a ORM do Gorm e Kong como Api Gateway, e com RabbitMq.
 
 Os serviços tem modelos de usuário e permissões por papeis.
 
