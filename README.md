@@ -7,16 +7,24 @@ Os serviços tem modelos de usuário e permissões por papeis.
 
 ![Capturar](https://github.com/user-attachments/assets/0cf6b2f4-b8ac-4fe6-80c5-2d55ca12a0d9)
 
-## Como rodar?
+## Como rodar? (Windows)
 O backend roda utilizando Go 1.17, é importante que tenha Postgres instalado e rodando na maquina.
 
-Primeiramente é necessária instalação das dependencias na pasta de cada projeto, vale lembrar que temos 3 pastas com microserviços diferentes.
+Primeiramente devemos ter broker executando na nossa maquina, com docker instalado, podemos rodar através do comando docker.:
+
+`docker run -it --rm --name rabbitmq -p 5672:5672 -p 15672:15672 rabbitmq:4.0-management` 
+
+Com isso verificamos se rabbitMq está rodando e se quisermos podemos acessar `http://localhost:15672/#/` (User:guest, senha:guest)
+
+Após isso necessária instalação das dependencias na pasta de cada projeto, vale lembrar que temos 4 pastas com microserviços diferentes.
 
 `item-microservice`
 
 `role-microservice`
 
 `user-microservice`
+
+`email-microservice`
 
 Rodar o seguinte comandos em todos os projetos.
 
@@ -35,6 +43,8 @@ Com isso teremos os seguintes microserviços rodando nas seguintes portas.
 `role-microservice` = `localhost:8082`
 
 `user-microservice` = `localhost:8081`
+
+O `email-microservice` não roda nenhuma porta e só serve para se comunicar com outros serviços através do rabbitMq.
 
 Ao rodar cada microserviço ele fará migrate na base criando todas as tabelas no Postgres, também é possivel fazer criação de tabela e registros através da pasta `database`.
 
