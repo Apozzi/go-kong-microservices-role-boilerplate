@@ -1,8 +1,6 @@
 # Login Role Microservices Backend
 
 [![Golang](https://img.shields.io/badge/Go-1.22+-00ADD8?logo=go&logoColor=white)](https://golang.org)
-[![Gin](https://img.shields.io/badge/Gin-1.9.1-0096D9?logo=go&logoColor=white)](https://gin-gonic.com)
-[![GORM](https://img.shields.io/badge/GORM-1.25.7-2D2D2D)](https://gorm.io)
 [![Kong](https://img.shields.io/badge/Kong-3.6.0-003459?logo=apache-kong&logoColor=white)](https://konghq.com)
 [![Konga](https://img.shields.io/badge/Konga-0.15.0-005C84)](https://github.com/pantsel/konga)
 [![JWT](https://img.shields.io/badge/JWT-Auth-000000?logo=json-web-tokens)](https://jwt.io)
