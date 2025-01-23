@@ -1,4 +1,16 @@
 # Login Role Microservices Backend
+
+[![Golang](https://img.shields.io/badge/Go-1.22+-00ADD8?logo=go&logoColor=white)](https://golang.org)
+[![Gin](https://img.shields.io/badge/Gin-1.9.1-0096D9?logo=go&logoColor=white)](https://gin-gonic.com)
+[![GORM](https://img.shields.io/badge/GORM-1.25.7-2D2D2D)](https://gorm.io)
+[![Kong](https://img.shields.io/badge/Kong-3.6.0-003459?logo=apache-kong&logoColor=white)](https://konghq.com)
+[![Konga](https://img.shields.io/badge/Konga-0.15.0-005C84)](https://github.com/pantsel/konga)
+[![JWT](https://img.shields.io/badge/JWT-Auth-000000?logo=json-web-tokens)](https://jwt.io)
+[![RabbitMQ](https://img.shields.io/badge/RabbitMQ-3.13-FF6600?logo=rabbitmq)](https://rabbitmq.com)
+[![Microservices](https://img.shields.io/badge/Architecture-Microservices-2496ED)](https://microservices.io)
+[![API Gateway](https://img.shields.io/badge/Pattern-API_Gateway-009688)](https://konghq.com/learning-center/api-gateway/)
+
+
 Microserviços feitos em golang utilizando frameworks Gin e o a ORM do Gorm e Kong como Api Gateway, e com RabbitMQ.
 
 Os serviços tem modelos de usuário e permissões por papeis.
